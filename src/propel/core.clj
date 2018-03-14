@@ -172,11 +172,12 @@
 
 (defn interpret-program
   "Runs the given problem starting with the stacks in start-state."
-  [program start-state]
-  (loop [state (assoc start-state :exec program)]
-    (if (empty? (:exec state))
+  [program start-state step-limit]
+  (loop [state (assoc start-state :exec program :step 1)]
+    (if (or (empty? (:exec state))
+            (> (:step state) step-limit))
       state
-      (recur (interpret-one-step state)))))
+      (recur (update (interpret-one-step state) :step inc)))))
 
 (defn push-from-plushy
   "Returns the Push program expressed by the given plushy representation."
@@ -320,8 +321,10 @@
         correct-outputs (map target-function inputs)
         outputs (map (fn [input]
                        (peek-stack
-                        (interpret-program program
-                                           (assoc empty-push-state :input {:in1 input}))
+                        (interpret-program 
+                          program
+                          (assoc empty-push-state :input {:in1 input})
+                          100)
                         :integer))
                      inputs)
         errors (map (fn [correct-output output]
