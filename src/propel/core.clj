@@ -24,6 +24,10 @@
     1
    ))
 
+(def opens ; number of blocks opened by instructions (default = 0)
+  {'exec_dup 1 
+   'exec_if 2})
+
 ;;;;;;;;;
 ;; Utilities
 
@@ -174,14 +178,38 @@
       state
       (recur (interpret-one-step state)))))
 
+(defn push-from-plushy
+  "Returns the Push program expressed by the given plushy representation."
+  [plushy]
+  (let [opener? #(and (vector? %) (= (first %) 'open))] ;; [open <n>] marks opens
+    (loop [push () ;; iteratively build the Push program from the plushy
+           plushy (mapcat #(if-let [n (get opens %)] [% ['open n]] [%]) plushy)]
+      (if (empty? plushy)       ;; maybe we're done?
+        (if (some opener? push) ;; done with plushy, but unclosed open
+          (recur push '(close)) ;; recur with one more close
+          push)                 ;; otherwise, really done, return push
+        (let [i (first plushy)]
+          (if (= i 'close) 
+            (if (some opener? push) ;; process a close when there's an open
+              (recur (let [post-open (reverse (take-while (comp not opener?)
+                                                          (reverse push)))
+                           open-index (- (count push) (count post-open) 1)
+                           num-open (second (nth push open-index))
+                           pre-open (take open-index push)]
+                       (if (= 1 num-open)
+                         (concat pre-open [post-open])
+                         (concat pre-open [post-open ['open (dec num-open)]])))
+                     (rest plushy))
+              (recur push (rest plushy))) ;; unmatched close, ignore
+            (recur (concat push [i]) (rest plushy)))))))) ;; anything else
 
 ;;;;;;;;;
 ;; GP
 
-(defn make-random-push-program
-  "Creates and returns a new program."
-  [instructions max-initial-program-size]
-  (repeatedly (rand-int max-initial-program-size)
+(defn make-random-plushy
+  "Creates and returns a new plushy."
+  [instructions max-initial-plushy-size]
+  (repeatedly (rand-int max-initial-plushy-size)
               #(rand-nth instructions)))
 
 (defn tournament-selection
@@ -193,11 +221,11 @@
 
 (defn crossover
   "Crosses over two individuals using uniform crossover. Pads shorter one."
-  [prog-a prog-b]
-  (let [shorter (min-key count prog-a prog-b)
-        longer (if (= shorter prog-a)
-                 prog-b
-                 prog-a)
+  [plushy-a plushy-b]
+  (let [shorter (min-key count plushy-a plushy-b)
+        longer (if (= shorter plushy-a)
+                 plushy-b
+                 plushy-a)
         length-diff (- (count longer) (count shorter))
         shorter-padded (concat shorter (repeat length-diff :crossover-padding))]
     (remove #(= % :crossover-padding)
@@ -207,33 +235,33 @@
 
 (defn uniform-addition
   "Randomly adds new instructions before every instruction (and at the end of
-  the program) with some probability."
-  [prog]
-  (let [rand-code (repeatedly (inc (count prog))
+  the plushy) with some probability."
+  [plushy]
+  (let [rand-code (repeatedly (inc (count plushy))
                               (fn []
                                 (if (< (rand) 0.05)
                                   (rand-nth instructions)
                                   :mutation-padding)))]
     (remove #(= % :mutation-padding)
-            (interleave (conj prog :mutation-padding)
+            (interleave (conj plushy :mutation-padding)
                         rand-code))))
 
 (defn uniform-deletion
-  "Randomly deletes instructions from program at some rate."
-  [prog]
+  "Randomly deletes instructions from plushy at some rate."
+  [plushy]
   (remove (fn [x] (< (rand) 0.05))
-          prog))
+          plushy))
 
 (defn select-and-vary
   "Selects parent(s) from population and varies them."
   [pop]
-  {:program
+  {:plushy
    (let [prob (rand)]
      (cond
-       (< prob 0.5) (crossover (:program (tournament-selection pop))
-                               (:program (tournament-selection pop)))
-       (< prob 0.75) (uniform-addition (:program (tournament-selection pop)))
-       :else (uniform-deletion (:program (tournament-selection pop)))))})
+       (< prob 0.5) (crossover (:plushy (tournament-selection pop))
+                               (:plushy (tournament-selection pop)))
+       (< prob 0.75) (uniform-addition (:plushy (tournament-selection pop)))
+       :else (uniform-deletion (:plushy (tournament-selection pop)))))})
 
 (defn report
   "Reports information each generation."
@@ -242,7 +270,8 @@
     (println "-------------------------------------------------------")
     (println "               Report for Generation" generation)
     (println "-------------------------------------------------------")
-    (println "Best program:" (:program best))
+    (println "Best plushy:" (:plushy best))
+    (println "Best program:" (push-from-plushy (:plushy best)))
     (println "Best total error:" (:total-error best))
     (println "Best errors:" (:errors best))
     (println "Best behaviors:" (:behaviors best))
@@ -250,13 +279,14 @@
 
 (defn propel-gp
   "Main GP loop."
-  [{:keys [population-size max-generations error-function instructions max-initial-program-size]}]
+  [{:keys [population-size max-generations error-function instructions 
+           max-initial-plushy-size]}]
   (loop [generation 0
          population (repeatedly
                      population-size
-                     #(hash-map :program
-                                (make-random-push-program instructions
-                                                          max-initial-program-size)))]
+                     #(hash-map :plushy
+                                (make-random-plushy instructions
+                                                    max-initial-plushy-size)))]
     (let [evaluated-pop (sort-by :total-error (map error-function population))]
       (report evaluated-pop generation)
       (cond
@@ -285,7 +315,7 @@
 (defn regression-error-function
   "Finds the behaviors and errors of the individual."
   [individual]
-  (let [program (:program individual)
+  (let [program (push-from-plushy (:plushy individual))
         inputs (range -10 11)
         correct-outputs (map target-function inputs)
         outputs (map (fn [input]
@@ -314,4 +344,4 @@
                 :error-function regression-error-function
                 :max-generations 500
                 :population-size 200
-                :max-initial-program-size 50})))
+                :max-initial-plushy-size 50})))
