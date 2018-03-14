@@ -137,11 +137,26 @@
   "Takes a Push state and executes the next instruction on the exec stack."
   [state]
   (let [popped-state (pop-stack state :exec)
-        first-instruction (eval (first (:exec state)))]
+        first-raw (first (:exec state))
+        first-instruction (if (symbol? first-raw) 
+                            (eval first-raw)
+                            first-raw)]
     (cond
-      (fn? first-instruction) (first-instruction popped-state)
-      (integer? first-instruction) (push-to-stack popped-state :integer first-instruction)
-      :else (throw (Exception. (str "Unrecognized Push instruction in program: " first-instruction))))))
+      (fn? first-instruction) 
+      (first-instruction popped-state)
+      ;
+      (integer? first-instruction) 
+      (push-to-stack popped-state :integer first-instruction)
+      ;
+      (string? first-instruction) 
+      (push-to-stack popped-state :string first-instruction)
+      ;
+      (seq? first-instruction)
+      (update popped-state :exec #(concat %2 %1) first-instruction)
+      ;
+      :else 
+      (throw (Exception. (str "Unrecognized Push instruction in program: " 
+                              first-instruction))))))
 
 (defn interpret-program
   "Runs the given problem starting with the stacks in start-state."
