@@ -281,14 +281,17 @@
 (defn propel-gp
   "Main GP loop."
   [{:keys [population-size max-generations error-function instructions 
-           max-initial-plushy-size]}]
+           max-initial-plushy-size]
+    :as argmap}]
   (loop [generation 0
          population (repeatedly
                      population-size
                      #(hash-map :plushy
                                 (make-random-plushy instructions
                                                     max-initial-plushy-size)))]
-    (let [evaluated-pop (sort-by :total-error (map error-function population))]
+    (let [evaluated-pop (sort-by :total-error 
+                                 (map (partial error-function argmap)
+                                      population))]
       (report evaluated-pop generation)
       (cond
         (zero? (:total-error (first evaluated-pop))) (println "SUCCESS")
@@ -315,7 +318,7 @@
 
 (defn regression-error-function
   "Finds the behaviors and errors of the individual."
-  [individual]
+  [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
         inputs (range -10 11)
         correct-outputs (map target-function inputs)
@@ -324,7 +327,7 @@
                         (interpret-program 
                           program
                           (assoc empty-push-state :input {:in1 input})
-                          100)
+                          (:step-limit argmap))
                         :integer))
                      inputs)
         errors (map (fn [correct-output output]
@@ -347,4 +350,6 @@
                 :error-function regression-error-function
                 :max-generations 500
                 :population-size 200
-                :max-initial-plushy-size 50})))
+                :max-initial-plushy-size 50
+                :step-limit 100})))
+
