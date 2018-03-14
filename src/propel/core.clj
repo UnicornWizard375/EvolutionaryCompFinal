@@ -13,13 +13,15 @@
 ; TMH: ERCs?
 (def instructions
   (list
-   'in1
-   'integer_+
-   'integer_-
-   'integer_*
-   'integer_%
-   0
-   1
+    'in1
+    'integer_+
+    'integer_-
+    'integer_*
+    'integer_%
+    'exec_dup
+    'close
+    0
+    1
    ))
 
 ;;;;;;;;;
@@ -128,6 +130,12 @@
                              (quot int1 int2)))
                          [:integer :integer]
                          :integer))
+
+(defn exec_dup
+  [state]
+  (if (empty-stack? state :exec)
+    state
+    (push-to-stack state :exec (first (:exec state)))))
 
 
 ;;;;;;;;;
