@@ -283,6 +283,7 @@
   [{:keys [population-size max-generations error-function instructions 
            max-initial-plushy-size]
     :as argmap}]
+  (println "Starting GP with args:" argmap)
   (loop [generation 0
          population (repeatedly
                      population-size
@@ -346,10 +347,13 @@
   "Runs propel-gp, giving it a map of arguments."
   [& args]
   (binding [*ns* (the-ns 'propel.core)]
-    (propel-gp {:instructions instructions
-                :error-function regression-error-function
-                :max-generations 500
-                :population-size 200
-                :max-initial-plushy-size 50
-                :step-limit 100})))
+    (propel-gp (merge {:instructions instructions
+                       :error-function regression-error-function
+                       :max-generations 500
+                       :population-size 200
+                       :max-initial-plushy-size 50
+                       :step-limit 100}
+                      (apply hash-map
+                             (map read-string args))))))
+
 
