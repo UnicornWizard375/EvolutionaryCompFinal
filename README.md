@@ -30,7 +30,7 @@ Push programs are parenthesized lists of instructions and values, which can incl
 
 In early versions of PushGP, Push programs were varied and recombined in their "natural" form, as possibly-nested lists of instructions and values that could be added, deleted, and replaced at any level of nesting.
 
-Later, however, the linear (un-nested) representations of Push programs were developed, which:
+Later, however, linear (un-nested) representations of Push programs were developed, which:
 
 - Provide better support for *uniform* variation operators (in which each program component has an equal likelihood of being affected).
 
