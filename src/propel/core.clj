@@ -19,9 +19,12 @@
     'integer_*
     'integer_%
     'exec_dup
+    'exec_if
     'close
     0
     1
+    true
+    false
    ))
 
 (def opens ; number of blocks opened by instructions (default = 0)
@@ -141,6 +144,12 @@
     state
     (push-to-stack state :exec (first (:exec state)))))
 
+(defn exec_if
+  [state]
+  (make-push-instruction state
+                         #(if %1 %3 %2)
+                         [:boolean :exec :exec]
+                         :exec))
 
 ;;;;;;;;;
 ;; Interpreter
@@ -165,6 +174,9 @@
       ;
       (seq? first-instruction)
       (update popped-state :exec #(concat %2 %1) first-instruction)
+      ;
+      (or (= first-instruction true) (= first-instruction false))
+      (push-to-stack popped-state :boolean first-instruction)
       ;
       :else 
       (throw (Exception. (str "Unrecognized Push instruction in program: " 
