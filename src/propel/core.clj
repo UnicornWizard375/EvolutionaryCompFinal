@@ -151,6 +151,18 @@
                          [:boolean :exec :exec]
                          :exec))
 
+(defn boolean_and
+  [state]
+  (make-push-instruction state #(and %1 %2) [:boolean :boolean] :boolean))
+
+(defn boolean_or
+  [state]
+  (make-push-instruction state #(or %1 %2) [:boolean :boolean] :boolean))
+
+(defn boolean_not
+  [state]
+  (make-push-instruction state not [:boolean] :boolean))
+
 ;;;;;;;;;
 ;; Interpreter
 
@@ -367,5 +379,4 @@
                        :step-limit 100}
                       (apply hash-map
                              (map read-string args))))))
-
 
