@@ -29,6 +29,8 @@
     'string_take
     'string_drop
     'string_reverse
+    'string_concat
+    'string_length
     'close
     0
     1
@@ -36,6 +38,10 @@
     false
     ""
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "A"
+    "C"
+    "G"
+    "T"
    ))
 
 (def opens ; number of blocks opened by instructions (default = 0)
@@ -206,6 +212,17 @@
                          #(apply str (reverse %)) 
                          [:string] 
                          :string))
+
+(defn string_concat
+  [state]
+  (make-push-instruction state 
+                         #(apply str (concat %1 %2)) 
+                         [:string :string] 
+                         :string))
+
+(defn string_length
+  [state]
+  (make-push-instruction state count [:string] :integer))
 
 ;;;;;;;;;
 ;; Interpreter
