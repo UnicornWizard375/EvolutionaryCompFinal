@@ -31,6 +31,7 @@
     'string_reverse
     'string_concat
     'string_length
+    'string_includes?
     'close
     0
     1
@@ -223,6 +224,10 @@
 (defn string_length
   [state]
   (make-push-instruction state count [:string] :integer))
+
+(defn string_includes?
+  [state]
+  (make-push-instruction state clojure.string/includes? [:string :string] :boolean))
 
 ;;;;;;;;;
 ;; Interpreter
@@ -427,16 +432,49 @@
            :errors errors
            :total-error (apply +' errors))))
 
+;;;;;;;;;
+;; String classification
+
+(defn string-classification-error-function
+  "Finds the behaviors and errors of the individual."
+  [argmap individual]
+  (let [program (push-from-plushy (:plushy individual))
+        inputs ["GCG" "GACAG" "AGAAG" "CCCA" "GATTACA" "TAGG" "GACT"]
+        correct-outputs [false false false false true true true]
+        outputs (map (fn [input]
+                       (peek-stack
+                        (interpret-program 
+                          program
+                          (assoc empty-push-state :input {:in1 input})
+                          (:step-limit argmap))
+                        :boolean))
+                     inputs)
+        errors (map (fn [correct-output output]
+                      (if (= output :no-stack-item)
+                        1000000
+                        (if (= correct-output output)
+                          0
+                          1)))
+                    correct-outputs
+                    outputs)]
+    (assoc individual
+           :behaviors outputs
+           :errors errors
+           :total-error (apply +' errors))))
+
 (defn -main
   "Runs propel-gp, giving it a map of arguments."
   [& args]
   (binding [*ns* (the-ns 'propel.core)]
-    (propel-gp (merge {:instructions instructions
-                       :error-function regression-error-function
-                       :max-generations 500
-                       :population-size 200
-                       :max-initial-plushy-size 50
-                       :step-limit 100}
-                      (apply hash-map
-                             (map read-string args))))))
+    (propel-gp (update-in (merge {:instructions instructions
+                                  :error-function regression-error-function
+                                  :max-generations 500
+                                  :population-size 200
+                                  :max-initial-plushy-size 50
+                                  :step-limit 100}
+                                 (apply hash-map
+                                        (map read-string args)))
+                          [:error-function]
+                          #(if (fn? %) % (eval %))))))
+
 
