@@ -18,8 +18,14 @@
     'integer_-
     'integer_*
     'integer_%
+    'integer_=
     'exec_dup
     'exec_if
+    'boolean_and
+    'boolean_or
+    'boolean_not
+    'boolean_=
+    'string_=
     'close
     0
     1
@@ -138,6 +144,10 @@
                          [:integer :integer]
                          :integer))
 
+(defn integer_=
+  [state]
+  (make-push-instruction state = [:integer :integer] :boolean))
+
 (defn exec_dup
   [state]
   (if (empty-stack? state :exec)
@@ -162,6 +172,14 @@
 (defn boolean_not
   [state]
   (make-push-instruction state not [:boolean] :boolean))
+
+(defn boolean_=
+  [state]
+  (make-push-instruction state = [:boolean :boolean] :boolean))
+
+(defn string_=
+  [state]
+  (make-push-instruction state = [:string :string] :boolean))
 
 ;;;;;;;;;
 ;; Interpreter
@@ -365,7 +383,6 @@
            :behaviors outputs
            :errors errors
            :total-error (apply +' errors))))
-
 
 (defn -main
   "Runs propel-gp, giving it a map of arguments."
