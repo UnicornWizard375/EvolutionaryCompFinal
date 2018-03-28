@@ -26,11 +26,16 @@
     'boolean_not
     'boolean_=
     'string_=
+    'string_take
+    'string_drop
+    'string_reverse
     'close
     0
     1
     true
     false
+    ""
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
    ))
 
 (def opens ; number of blocks opened by instructions (default = 0)
@@ -180,6 +185,27 @@
 (defn string_=
   [state]
   (make-push-instruction state = [:string :string] :boolean))
+
+(defn string_take
+  [state]
+  (make-push-instruction state 
+                         #(apply str (take %1 %2)) 
+                         [:integer :string] 
+                         :string))
+
+(defn string_drop
+  [state]
+  (make-push-instruction state 
+                         #(apply str (drop %1 %2)) 
+                         [:integer :string] 
+                         :string))
+
+(defn string_reverse
+  [state]
+  (make-push-instruction state 
+                         #(apply str (reverse %)) 
+                         [:string] 
+                         :string))
 
 ;;;;;;;;;
 ;; Interpreter
