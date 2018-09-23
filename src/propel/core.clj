@@ -362,8 +362,9 @@
   (remove (fn [x] (< (rand) 0.05))
           plushy))
 
-(defn select-and-vary
-  "Selects parent(s) from population and varies them."
+(defn new-individual
+  "Returns a new individual produced by selection and variation of
+  individuals in the population."
   [pop argmap]
   {:plushy
    (let [prob (rand)]
@@ -408,7 +409,7 @@
         (>= generation max-generations) nil
         :else (recur (inc generation)
                      (repeatedly population-size 
-                                 #(select-and-vary evaluated-pop argmap)))))))
+                                 #(new-individual evaluated-pop argmap)))))))
 
 ;;;;;;;;;
 ;; Problem: f(x) = 7x^2 - 20x + 13
