@@ -7,46 +7,44 @@
    :string '("abc")
    :input {:in1 4}})
 
-
 ; Instructions must all be either functions that take one Push state and return another
 ; or constant literals.
 ; TMH: ERCs?
 (def instructions
   (list
-    'in1
-    'integer_+
-    'integer_-
-    'integer_*
-    'integer_%
-    'integer_=
-    'exec_dup
-    'exec_if
-    'boolean_and
-    'boolean_or
-    'boolean_not
-    'boolean_=
-    'string_=
-    'string_take
-    'string_drop
-    'string_reverse
-    'string_concat
-    'string_length
-    'string_includes?
-    'close
-    0
-    1
-    true
-    false
-    ""
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "A"
-    "C"
-    "G"
-    "T"
-   ))
+   'in1
+   'integer_+
+   'integer_-
+   'integer_*
+   'integer_%
+   'integer_=
+   'exec_dup
+   'exec_if
+   'boolean_and
+   'boolean_or
+   'boolean_not
+   'boolean_=
+   'string_=
+   'string_take
+   'string_drop
+   'string_reverse
+   'string_concat
+   'string_length
+   'string_includes?
+   'close
+   0
+   1
+   true
+   false
+   ""
+   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+   "A"
+   "C"
+   "G"
+   "T"))
 
 (def opens ; number of blocks opened by instructions (default = 0)
-  {'exec_dup 1 
+  {'exec_dup 1
    'exec_if 2})
 
 ;;;;;;;;;
@@ -195,30 +193,30 @@
 
 (defn string_take
   [state]
-  (make-push-instruction state 
-                         #(apply str (take %1 %2)) 
-                         [:integer :string] 
+  (make-push-instruction state
+                         #(apply str (take %1 %2))
+                         [:integer :string]
                          :string))
 
 (defn string_drop
   [state]
-  (make-push-instruction state 
-                         #(apply str (drop %1 %2)) 
-                         [:integer :string] 
+  (make-push-instruction state
+                         #(apply str (drop %1 %2))
+                         [:integer :string]
                          :string))
 
 (defn string_reverse
   [state]
-  (make-push-instruction state 
-                         #(apply str (reverse %)) 
-                         [:string] 
+  (make-push-instruction state
+                         #(apply str (reverse %))
+                         [:string]
                          :string))
 
 (defn string_concat
   [state]
-  (make-push-instruction state 
-                         #(apply str (concat %1 %2)) 
-                         [:string :string] 
+  (make-push-instruction state
+                         #(apply str (concat %1 %2))
+                         [:string :string]
                          :string))
 
 (defn string_length
@@ -237,17 +235,17 @@
   [state]
   (let [popped-state (pop-stack state :exec)
         first-raw (first (:exec state))
-        first-instruction (if (symbol? first-raw) 
+        first-instruction (if (symbol? first-raw)
                             (eval first-raw)
                             first-raw)]
     (cond
-      (fn? first-instruction) 
+      (fn? first-instruction)
       (first-instruction popped-state)
       ;
-      (integer? first-instruction) 
+      (integer? first-instruction)
       (push-to-stack popped-state :integer first-instruction)
       ;
-      (string? first-instruction) 
+      (string? first-instruction)
       (push-to-stack popped-state :string first-instruction)
       ;
       (seq? first-instruction)
@@ -256,8 +254,8 @@
       (or (= first-instruction true) (= first-instruction false))
       (push-to-stack popped-state :boolean first-instruction)
       ;
-      :else 
-      (throw (Exception. (str "Unrecognized Push instruction in program: " 
+      :else
+      (throw (Exception. (str "Unrecognized Push instruction in program: "
                               first-instruction))))))
 
 (defn interpret-program
@@ -280,7 +278,7 @@
           (recur push '(close)) ;; recur with one more close
           push)                 ;; otherwise, really done, return push
         (let [i (first plushy)]
-          (if (= i 'close) 
+          (if (= i 'close)
             (if (some opener? push) ;; process a close when there's an open
               (recur (let [post-open (reverse (take-while (comp not opener?)
                                                           (reverse push)))
@@ -304,11 +302,32 @@
               #(rand-nth instructions)))
 
 (defn tournament-selection
-  "Selects an individual for variation using a tournament."
-  [pop]
-  (let [tournament-size 5
+  "Selects an individual from the population using a tournament."
+  [pop argmap]
+  (let [tournament-size (:tournament-size argmap)
         tournament-set (take tournament-size (shuffle pop))]
     (apply min-key :total-error tournament-set)))
+
+(defn lexicase-selection
+  "Selects an individual from the population using lexicase selection."
+  [pop argmap]
+  (loop [survivors pop
+         cases (shuffle (range (count (:errors (first pop)))))]
+    (if (or (empty? cases)
+            (empty? (rest survivors)))
+      (rand-nth survivors)
+      (let [min-err-for-case (apply min (map #(nth % (first cases))
+                                             (map :errors survivors)))]
+        (recur (filter #(= (nth (:errors %) (first cases)) min-err-for-case)
+                       survivors)
+               (rest cases))))))
+
+(defn select-parent
+  "Selects a parent from the population using the specified method."
+  [pop argmap]
+  (case (:parent-selection argmap)
+    :tournament (tournament-selection pop argmap)
+    :lexicase (lexicase-selection pop argmap)))
 
 (defn crossover
   "Crosses over two individuals using uniform crossover. Pads shorter one."
@@ -345,14 +364,14 @@
 
 (defn select-and-vary
   "Selects parent(s) from population and varies them."
-  [pop]
+  [pop argmap]
   {:plushy
    (let [prob (rand)]
      (cond
-       (< prob 0.5) (crossover (:plushy (tournament-selection pop))
-                               (:plushy (tournament-selection pop)))
-       (< prob 0.75) (uniform-addition (:plushy (tournament-selection pop)))
-       :else (uniform-deletion (:plushy (tournament-selection pop)))))})
+       (< prob 0.5) (crossover (:plushy (select-parent pop argmap))
+                               (:plushy (select-parent pop argmap)))
+       (< prob 0.75) (uniform-addition (:plushy (select-parent pop argmap)))
+       :else (uniform-deletion (:plushy (select-parent pop argmap)))))})
 
 (defn report
   "Reports information each generation."
@@ -370,7 +389,7 @@
 
 (defn propel-gp
   "Main GP loop."
-  [{:keys [population-size max-generations error-function instructions 
+  [{:keys [population-size max-generations error-function instructions
            max-initial-plushy-size]
     :as argmap}]
   (println "Starting GP with args:" argmap)
@@ -380,7 +399,7 @@
                      #(hash-map :plushy
                                 (make-random-plushy instructions
                                                     max-initial-plushy-size)))]
-    (let [evaluated-pop (sort-by :total-error 
+    (let [evaluated-pop (sort-by :total-error
                                  (map (partial error-function argmap)
                                       population))]
       (report evaluated-pop generation)
@@ -388,7 +407,8 @@
         (zero? (:total-error (first evaluated-pop))) (println "SUCCESS")
         (>= generation max-generations) nil
         :else (recur (inc generation)
-                     (repeatedly population-size #(select-and-vary evaluated-pop)))))))
+                     (repeatedly population-size 
+                                 #(select-and-vary evaluated-pop argmap)))))))
 
 ;;;;;;;;;
 ;; Problem: f(x) = 7x^2 - 20x + 13
@@ -415,10 +435,10 @@
         correct-outputs (map target-function inputs)
         outputs (map (fn [input]
                        (peek-stack
-                        (interpret-program 
-                          program
-                          (assoc empty-push-state :input {:in1 input})
-                          (:step-limit argmap))
+                        (interpret-program
+                         program
+                         (assoc empty-push-state :input {:in1 input})
+                         (:step-limit argmap))
                         :integer))
                      inputs)
         errors (map (fn [correct-output output]
@@ -443,10 +463,10 @@
         correct-outputs [false false false false true true true]
         outputs (map (fn [input]
                        (peek-stack
-                        (interpret-program 
-                          program
-                          (assoc empty-push-state :input {:in1 input})
-                          (:step-limit argmap))
+                        (interpret-program
+                         program
+                         (assoc empty-push-state :input {:in1 input})
+                         (:step-limit argmap))
                         :boolean))
                      inputs)
         errors (map (fn [correct-output output]
@@ -471,10 +491,11 @@
                                   :max-generations 500
                                   :population-size 200
                                   :max-initial-plushy-size 50
-                                  :step-limit 100}
+                                  :step-limit 100
+                                  :parent-selection :tournament
+                                  :tournament-size 5}
                                  (apply hash-map
                                         (map read-string args)))
                           [:error-function]
                           #(if (fn? %) % (eval %))))))
-
 
