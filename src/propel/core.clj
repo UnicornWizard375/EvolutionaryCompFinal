@@ -10,7 +10,7 @@
 ; Instructions must all be either functions that take one Push state and return another
 ; or constant literals.
 ; TMH: ERCs?
-(def instructions
+(def default-instructions
   (list
    'in1
    'integer_+
@@ -346,7 +346,7 @@
 (defn uniform-addition
   "Randomly adds new instructions before every instruction (and at the end of
   the plushy) with some probability."
-  [plushy]
+  [plushy instructions]
   (let [rand-code (repeatedly (inc (count plushy))
                               (fn []
                                 (if (< (rand) 0.05)
@@ -371,7 +371,8 @@
      (cond
        (< prob 0.5) (crossover (:plushy (select-parent pop argmap))
                                (:plushy (select-parent pop argmap)))
-       (< prob 0.75) (uniform-addition (:plushy (select-parent pop argmap)))
+       (< prob 0.75) (uniform-addition (:plushy (select-parent pop argmap))
+                                       (:instructions argmap))
        :else (uniform-deletion (:plushy (select-parent pop argmap)))))})
 
 (defn report
@@ -487,7 +488,7 @@
   "Runs propel-gp, giving it a map of arguments."
   [& args]
   (binding [*ns* (the-ns 'propel.core)]
-    (propel-gp (update-in (merge {:instructions instructions
+    (propel-gp (update-in (merge {:instructions default-instructions
                                   :error-function regression-error-function
                                   :max-generations 500
                                   :population-size 200
