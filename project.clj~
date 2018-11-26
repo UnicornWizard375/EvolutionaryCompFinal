@@ -1,4 +1,4 @@
-(defproject propel "0.3.0"
+(defproject propel "0.2.0"
   :description "Lee Spector's Plusification of Tom Helmuth's small Push implementation in Clojure."
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
