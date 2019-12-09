@@ -24,7 +24,7 @@
    'boolean_or
    'boolean_not
    'boolean_=
-   'string_=
+   'string_=string_reverse
    'string_take
    'string_drop
    'string_reverse
@@ -412,22 +412,64 @@
                      (repeatedly population-size 
                                  #(new-individual evaluated-pop argmap)))))))
 
-;;;;;;;;;
-;; Problem: f(x) = 7x^2 - 20x + 13
+; ;;;;;;;;;
+; ;; Problem: f(x) = 7x^2 - 20x + 13
 
-(defn target-function-hard
-  "Target function: f(x) = 7x^2 - 20x + 13"
-  [x]
-  (+ (* 7 x x)
-     (* -20 x)
-     13))
+; (defn target-function-hard
+;   "Target function: f(x) = 7x^2 - 20x + 13"
+;   [x]
+;   (+ (* 7 x x)
+;      (* -20 x)
+;      13))
 
+;  (defn target-function
+;    "Target function: f(x) = x^3 + x + 3"
+;    [x]
+;    (+ (* x x x)
+;       x
+;       3))
+
+;; Problem: asshole = 10
 (defn target-function
-  "Target function: f(x) = x^3 + x + 3"
+  "Target function: asshole = 10"
   [x]
-  (+ (* x x x)
-     x
-     3))
+  (+ ))
+
+(defn scrabble-score-calc
+  [x]
+  (reduce scrabble-score-calc (seq x)))
+
+(defn scrabble-score-cal
+  [x]
+  (cond
+    (= x 'A') 1
+    (= x 'B') 1
+    (= x 'C') 1
+    (= x 'D') 1
+    (= x 'E') 1
+    (= x 'F') 1
+    (= x 'G') 1
+    (= x 'H') 1
+    (= x 'I') 1
+    (= x 'J') 1
+    (= x 'K') 1
+    (= x 'L') 1
+    (= x 'M') 1
+    (= x 'N') 1
+    (= x 'O') 1
+    (= x 'P') 1
+    (= x 'Q') 1
+    (= x 'R') 1
+    (= x 'S') 1
+    (= x 'T') 1
+    (= x 'U') 1
+    (= x 'V') 1
+    (= x 'W') 1
+    (= x 'X') 1
+    (= x 'Y') 1
+    (= x 'Z') 1
+    )
+  )
 
 (defn regression-error-function
   "Finds the behaviors and errors of the individual."
