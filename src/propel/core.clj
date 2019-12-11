@@ -14,9 +14,9 @@
   (list
    'in1
    'integer_+
-   'integer_-
-   'integer_*
-   'integer_%
+   ;;'integer_-
+   ;;'integer_*
+   ;;'integer_%
    'integer_=
    'exec_dup
    'exec_if
@@ -24,7 +24,8 @@
    'boolean_or
    'boolean_not
    'boolean_=
-   'string_=string_reverse
+   'string_=
+   'string_reverse
    'string_take
    'string_drop
    'string_reverse
@@ -36,12 +37,33 @@
    1
    true
    false
-   ""
-   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
    "A"
+   "B"
    "C"
+   "D"
+   "E"
+   "F"
    "G"
-   "T"))
+   "H"
+   "I"
+   "J"
+   "K"
+   "L"
+   "M"
+   "N"
+   "O"
+   "P"
+   "Q"
+   "R"
+   "S"
+   "T"
+   "U"
+   "V"
+   "W"
+   "X"
+   "Y"
+   "Z"
+   ))
 
 (def opens ; number of blocks opened by instructions (default = 0)
   {'exec_dup 1
@@ -227,6 +249,17 @@
   [state]
   (make-push-instruction state clojure.string/includes? [:string :string] :boolean))
 
+(defn string-to-substrings-helper
+  [instr]
+  (if (string? instr)
+    (map str (seq instr))))
+
+(defn string-to-substrings
+[state]
+  (make-push-instruction state string-to-substrings-helper [:string] :lazy-seq ))
+
+
+
 ;;;;;;;;;
 ;; Interpreter
 
@@ -250,6 +283,7 @@
       ;
       (seq? first-instruction)
       (update popped-state :exec #(concat %2 %1) first-instruction)
+      ;make one for characters
       ;
       (or (= first-instruction true) (= first-instruction false))
       (push-to-stack popped-state :boolean first-instruction)
@@ -429,47 +463,49 @@
 ;       x
 ;       3))
 
-;; Problem: asshole = 10
+;; Problem: wizard = 19
 (defn target-function
-  "Target function: asshole = 10"
+  "Target function: wizard = 19"
   [x]
-  (+ ))
+  (+ 19 0))
 
-(defn scrabble-score-calc
-  [x]
-  (reduce scrabble-score-calc (seq x)))
 
-(defn scrabble-score-cal
+(defn score-letter
   [x]
   (cond
     (= x 'A') 1
-    (= x 'B') 1
-    (= x 'C') 1
-    (= x 'D') 1
+    (= x 'B') 3
+    (= x 'C') 3
+    (= x 'D') 2
     (= x 'E') 1
-    (= x 'F') 1
-    (= x 'G') 1
-    (= x 'H') 1
+    (= x 'F') 4
+    (= x 'G') 2
+    (= x 'H') 4
     (= x 'I') 1
-    (= x 'J') 1
-    (= x 'K') 1
+    (= x 'J') 8
+    (= x 'K') 5
     (= x 'L') 1
-    (= x 'M') 1
+    (= x 'M') 3
     (= x 'N') 1
     (= x 'O') 1
-    (= x 'P') 1
-    (= x 'Q') 1
+    (= x 'P') 3
+    (= x 'Q') 10
     (= x 'R') 1
     (= x 'S') 1
     (= x 'T') 1
     (= x 'U') 1
-    (= x 'V') 1
-    (= x 'W') 1
-    (= x 'X') 1
-    (= x 'Y') 1
-    (= x 'Z') 1
+    (= x 'V') 4
+    (= x 'W') 4
+    (= x 'X') 8
+    (= x 'Y') 4
+    (= x 'Z') 10
     )
   )
+
+(defn scrabble-score-calc
+  [x]
+  (reduce + (score-letter (seq x))))
+
 
 (defn regression-error-function
   "Finds the behaviors and errors of the individual."
@@ -499,11 +535,16 @@
 ;;;;;;;;;
 ;; String classification
 
+(def test-cases 
+  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
+  )
+
 (defn string-classification-error-function
   "Finds the behaviors and errors of the individual."
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
         inputs ["GCG" "GACAG" "AGAAG" "CCCA" "GATTACA" "TAGG" "GACT"]
+        ;;test cases above
         correct-outputs [false false false false true true true]
         outputs (map (fn [input]
                        (peek-stack
@@ -536,7 +577,8 @@
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
-                                  :parent-selection :tournament
+                                  ;;nic said to change to lexicase below
+                                  :parent-selection :lexicase
                                   :tournament-size 5}
                                  (apply hash-map
                                         (map read-string args)))
