@@ -14,9 +14,6 @@
   (list
    'in1
    'integer_+
-   ;;'integer_-
-   ;;'integer_*
-   ;;'integer_%
    'integer_=
    'exec_dup
    'exec_if
@@ -25,16 +22,19 @@
    'boolean_not
    'boolean_=
    'string_=
-   'string_reverse
    'string_take
    'string_drop
-   'string_reverse
-   'string_concat
    'string_length
    'string_includes?
+   'string_to_substrings
    'close
-   0
    1
+   2
+   3
+   4
+   5
+   8
+   10
    true
    false
    "A"
@@ -158,24 +158,6 @@
   [state]
   (make-push-instruction state +' [:integer :integer] :integer))
 
-(defn integer_-
-  [state]
-  (make-push-instruction state -' [:integer :integer] :integer))
-
-(defn integer_*
-  [state]
-  (make-push-instruction state *' [:integer :integer] :integer))
-
-(defn integer_%
-  [state]
-  (make-push-instruction state
-                         (fn [int1 int2]
-                           (if (zero? int2)
-                             int1
-                             (quot int1 int2)))
-                         [:integer :integer]
-                         :integer))
-
 (defn integer_=
   [state]
   (make-push-instruction state = [:integer :integer] :boolean))
@@ -227,20 +209,6 @@
                          [:integer :string]
                          :string))
 
-(defn string_reverse
-  [state]
-  (make-push-instruction state
-                         #(apply str (reverse %))
-                         [:string]
-                         :string))
-
-(defn string_concat
-  [state]
-  (make-push-instruction state
-                         #(apply str (concat %1 %2))
-                         [:string :string]
-                         :string))
-
 (defn string_length
   [state]
   (make-push-instruction state count [:string] :integer))
@@ -249,14 +217,13 @@
   [state]
   (make-push-instruction state clojure.string/includes? [:string :string] :boolean))
 
-(defn string-to-substrings-helper
+(defn string_to_substrings_helper
   [instr]
-  (if (string? instr)
-    (map str (seq instr))))
+    (map str (seq instr)))
 
-(defn string-to-substrings
+(defn string_to_substrings
 [state]
-  (make-push-instruction state string-to-substrings-helper [:string] :lazy-seq ))
+  (make-push-instruction state string_to_substrings_helper [:string] :string))
 
 
 
@@ -473,38 +440,44 @@
 (defn score-letter
   [x]
   (cond
-    (= x 'A') 1
-    (= x 'B') 3
-    (= x 'C') 3
-    (= x 'D') 2
-    (= x 'E') 1
-    (= x 'F') 4
-    (= x 'G') 2
-    (= x 'H') 4
-    (= x 'I') 1
-    (= x 'J') 8
-    (= x 'K') 5
-    (= x 'L') 1
-    (= x 'M') 3
-    (= x 'N') 1
-    (= x 'O') 1
-    (= x 'P') 3
-    (= x 'Q') 10
-    (= x 'R') 1
-    (= x 'S') 1
-    (= x 'T') 1
-    (= x 'U') 1
-    (= x 'V') 4
-    (= x 'W') 4
-    (= x 'X') 8
-    (= x 'Y') 4
-    (= x 'Z') 10
+    (= x "A") 1
+    (= x "B") 3
+    (= x "C") 3
+    (= x "D") 2
+    (= x "E") 1
+    (= x "F") 4
+    (= x "G") 2
+    (= x "H") 4
+    (= x "I") 1
+    (= x "J") 8
+    (= x "K") 5
+    (= x "L") 1
+    (= x "M") 3
+    (= x "N") 1
+    (= x "O") 1
+    (= x "P") 3
+    (= x "Q") 10
+    (= x "R") 1
+    (= x "S") 1
+    (= x "T") 1
+    (= x "U") 1
+    (= x "V") 4
+    (= x "W") 4
+    (= x "X") 8
+    (= x "Y") 4
+    (= x "Z") 10
     )
   )
 
 (defn scrabble-score-calc
   [x]
-  (reduce + (score-letter (seq x))))
+  (reduce + (for [n (range 0 (count x))]
+                  (score-letter(subs x n (+ n 1))))))
+
+(defn test-case-calc
+  [x]
+  (for [n (range 0 (count x))]
+    (scrabble-score-calc (nth x n))))
 
 
 (defn regression-error-function
@@ -536,30 +509,29 @@
 ;; String classification
 
 (def test-cases 
-  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
+  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" "AB" "BC" "CD" "DE" "EF" "FG" "GH" "HI" "IJ" "JK" "KL" "LM" "MN" "NO" "OP" "PQ" "QR" "RS" "ST" "TU" "UV" "VW" "WX" "XY" "YZ" "ZA" "CAT" "BALL" "MITCH" "JONAH" "HUNGRY" "CHICKEN" "SOUP" "PIE" "FRENCHFRIES" "BURGERS" "FRUITSALAD" "ORANGE" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
   )
 
 (defn string-classification-error-function
   "Finds the behaviors and errors of the individual."
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
-        inputs ["GCG" "GACAG" "AGAAG" "CCCA" "GATTACA" "TAGG" "GACT"]
-        ;;test cases above
-        correct-outputs [false false false false true true true]
+        inputs test-cases
+        correct-outputs (vec (test-case-calc test-cases))
         outputs (map (fn [input]
                        (peek-stack
                         (interpret-program
                          program
                          (assoc empty-push-state :input {:in1 input})
                          (:step-limit argmap))
-                        :boolean))
+                        :integer))
                      inputs)
         errors (map (fn [correct-output output]
                       (if (= output :no-stack-item)
                         1000000
                         (if (= correct-output output)
                           0
-                          1)))
+                          (abs (- correct-output output)))))
                     correct-outputs
                     outputs)]
     (assoc individual
@@ -572,7 +544,7 @@
   [& args]
   (binding [*ns* (the-ns 'propel.core)]
     (propel-gp (update-in (merge {:instructions default-instructions
-                                  :error-function regression-error-function
+                                  :error-function string-classification-error-function
                                   :max-generations 500
                                   :population-size 200
                                   :max-initial-plushy-size 50
