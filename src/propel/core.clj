@@ -26,7 +26,7 @@
    'string_drop
    'string_length
    'string_includes?
-   'string_to_substrings
+   'char_to_stack
    'close
    1
    2
@@ -217,15 +217,26 @@
   [state]
   (make-push-instruction state clojure.string/includes? [:string :string] :boolean))
 
-(defn string_to_substrings_helper
-  [instr]
-    (map str (seq instr)))
+(defn char_to_stack 
+  [state]
+  (make-push-instruction state (get_first_char [:string]) :string)
+  (if ( (string_length [:string]) > 1)
+    (char_to_stack (get_all_but_first [:string]))
+    
+  )
+)
 
-(defn string_to_substrings
-[state]
-  (make-push-instruction state string_to_substrings_helper [:string] :string))
+(defn get_first_char
+  [str] 
+  (if ( (string_length str) > 0)
+    (subs str 0 1) )
+)
 
-
+(defn get_all_but_first
+  [str]
+  (if ( (string_length str) > 0)
+    (subs str 1 (- string_length 1)) )
+)
 
 ;;;;;;;;;
 ;; Interpreter
