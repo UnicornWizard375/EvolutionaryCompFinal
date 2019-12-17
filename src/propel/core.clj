@@ -217,25 +217,24 @@
   [state]
   (make-push-instruction state clojure.string/includes? [:string :string] :boolean))
 
+
+(defn get_first_char
+  [str]
+  (if ((string_length str) > 0)
+    (subs str 0 1)))
+
+(defn get_all_but_first
+  [str]
+  (if ((string_length str) > 0)
+    (subs str 1 (- string_length 1))))
+
 (defn char_to_stack 
   [state]
-  (make-push-instruction state (get_first_char [:string]) :string)
+  (make-push-instruction state (get_first_char [:string]) [:string] :string)
   (if ( (string_length [:string]) > 1)
     (char_to_stack (get_all_but_first [:string]))
     
   )
-)
-
-(defn get_first_char
-  [str] 
-  (if ( (string_length str) > 0)
-    (subs str 0 1) )
-)
-
-(defn get_all_but_first
-  [str]
-  (if ( (string_length str) > 0)
-    (subs str 1 (- string_length 1)) )
 )
 
 ;;;;;;;;;
