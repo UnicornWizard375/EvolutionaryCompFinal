@@ -26,15 +26,25 @@
    'string_drop
    'string_length
    'string_includes?
-   'char_to_stack
+   'string_get_char_at
    'close
    1
    2
    3
    4
    5
+   6
+   7
    8
+   9
    10
+   11
+   12
+   13
+   14
+   15
+   16
+   17
    true
    false
    "A"
@@ -62,8 +72,7 @@
    "W"
    "X"
    "Y"
-   "Z"
-   ))
+   "Z"))
 
 (def opens ; number of blocks opened by instructions (default = 0)
   {'exec_dup 1
@@ -217,24 +226,18 @@
   [state]
   (make-push-instruction state clojure.string/includes? [:string :string] :boolean))
 
+(defn get_char_at
+  [word number]
+  (if (< number (count word))
+    (subs word number (+ number 1))
+    word
+    )
+)
 
-(defn get_first_char
-  [str]
-  (if ((string_length str) > 0)
-    (subs str 0 1)))
-
-(defn get_all_but_first
-  [str]
-  (if ((string_length str) > 0)
-    (subs str 1 (- string_length 1))))
-
-(defn char_to_stack 
+(defn string_get_char_at
   [state]
-  (make-push-instruction state (get_first_char [:string]) [:string] :string)
-  (if ( (string_length [:string]) > 1)
-    (char_to_stack (get_all_but_first [:string]))
-    
-  )
+  (push-to-stack state :string (peek-stack state :string))
+  (make-push-instruction state get_char_at [:string :integer] :string)
 )
 
 ;;;;;;;;;
