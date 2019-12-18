@@ -534,7 +534,7 @@
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
         inputs test-cases-char
-        correct-outputs (vec (test-case-calc test-cases))
+        correct-outputs (vec (test-case-calc test-cases-char))
         outputs (map (fn [input]
                        (peek-stack
                         (interpret-program
