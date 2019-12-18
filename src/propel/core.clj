@@ -14,7 +14,6 @@
   (list
    'in1
    'integer_+
-   'integer_=
    'exec_dup
    'exec_if
    'boolean_and
@@ -25,7 +24,6 @@
    'string_take
    'string_drop
    'string_length
-   'string_includes?
    'string_get_char_at
    'close
    1
@@ -523,7 +521,7 @@
   "Finds the behaviors and errors of the individual."
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
-        inputs test-cases-char
+        inputs test-cases-3
         correct-outputs (vec (test-case-calc test-cases-3))
         outputs (map (fn [input]
                        (peek-stack
