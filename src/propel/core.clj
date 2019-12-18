@@ -558,7 +558,7 @@
   (binding [*ns* (the-ns 'propel.core)]
     (propel-gp (update-in (merge {:instructions default-instructions
                                   :error-function string-classification-error-function
-                                  :max-generations 500
+                                  :max-generations 5000
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
