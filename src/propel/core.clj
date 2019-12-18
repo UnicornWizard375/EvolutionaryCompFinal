@@ -522,7 +522,7 @@
 ;; String classification
 
 (def test-cases 
-  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" "AB" "BC" "CD" "DE" "EF" "FG" "GH" "HI" "IJ" "JK" "KL" "LM" "MN" "NO" "OP" "PQ" "QR" "RS" "ST" "TU" "UV" "VW" "WX" "XY" "YZ" "ZA" "CAT" "BALL" "MITCH" "JONAH" "HUNGRY" "CHICKEN" "SOUP" "PIE" "FRENCHFRIES" "BURGERS" "FRUITSALAD" "ORANGE" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
+  [  "SPY" "ZERO" "WORRY" "HUNGRY" "CHICKEN" "RESEARCH" "SUFFERING" "EXPRESSION" "COUNTRYSIDE" "INTRODUCTION" "COMMUNICATION" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
   )
 
 (defn string-classification-error-function
