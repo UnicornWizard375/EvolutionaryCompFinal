@@ -1,0 +1,14 @@
+Mitchell Drummer and Jonah Northwood
+Evolutionary Computation - CSCI4553 
+Generating a scrabble score from a word was the problem we chose to do, where each word given has a ‘score’ equal to the sum of its letters’ point values. Each letter has an assigned point value (found in our score-letter method if you want to see actual values).
+
+We chose this problem because it seemed reasonable doable and we were curious to see what sort of answer would be generated.
+
+We were never able to get a solution but we tried 5 different test cases of 5000 generations and it would always solve a few of the letters and then not be able to find the rest.
+
+We went through a few combinations of what we should give as a function to get a character, we tried a different combinations of trying to either split the string into a bunch of single letter strings, or take varying amounts of substrings of the word, but we ended up with what we have because it preserved the original string and only required one item of the integer stack to get the character at that position. For test cases, we stay relatively constant. Our Original test case had all the letters a few 2 letter words, 3 letter words and then a few varying length words. This worked fine, but it always seemed to plateau at the same place so we tried some other test cases,like only the individual letters, and only some longer strings. We got quite a bit closer using individual letters, where it had figured out most letters but was still struggling with a few, maybe it could have gotten there with more runs. 
+
+A possible explanation for the lack of a solution could be the following issues: 
+We included the alphabet, and the numbers 1-20, in the default instructions so it could construct the statement: “if string = (letter) return (letter’s value)” but that may have been too many instructions, where the program kept choosing a letter far more often than other functions. 
+Scrabble’s scoring puts many numbers at a value of 1,2 or 3, so the program would always figure out that returning 2 * string_length would give it the best error, and not evolve anything past that, since this is sort of a “peak” in fitness.
+Our get_char_at method put a letter on the stack as well as a copy of the word, since calculating a score requires summing each letter, we needed to make sure it could copy strings. In the future we would probably just include a string_copy instead.

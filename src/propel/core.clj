@@ -45,6 +45,9 @@
    15
    16
    17
+   18
+   19
+   20
    true
    false
    "A"
@@ -231,7 +234,7 @@
   (if (< number (count word))
     (subs word number (+ number 1))
     word
-    )
+  )
 )
 
 (defn string_get_char_at
@@ -426,30 +429,6 @@
                      (repeatedly population-size 
                                  #(new-individual evaluated-pop argmap)))))))
 
-; ;;;;;;;;;
-; ;; Problem: f(x) = 7x^2 - 20x + 13
-
-; (defn target-function-hard
-;   "Target function: f(x) = 7x^2 - 20x + 13"
-;   [x]
-;   (+ (* 7 x x)
-;      (* -20 x)
-;      13))
-
-;  (defn target-function
-;    "Target function: f(x) = x^3 + x + 3"
-;    [x]
-;    (+ (* x x x)
-;       x
-;       3))
-
-;; Problem: wizard = 19
-(defn target-function
-  "Target function: wizard = 19"
-  [x]
-  (+ 19 0))
-
-
 (defn score-letter
   [x]
   (cond
@@ -492,6 +471,10 @@
   (for [n (range 0 (count x))]
     (scrabble-score-calc (nth x n))))
 
+(defn target-function
+  "Target function: wizard = 19"
+  [x]
+  (/ 19 0))
 
 (defn regression-error-function
   "Finds the behaviors and errors of the individual."
@@ -521,20 +504,27 @@
 ;;;;;;;;;
 ;; String classification
 
-(def test-cases 
-  [  "SPY" "ZERO" "WORRY" "HUNGRY" "CHICKEN" "JOYSTICK" "VIGOROUS" "SUFFERING" "EXPRESSION" "COUNTRYSIDE" "INTRODUCTION" "COMMUNICATION" "QUALIFICATION" "ANTIDISESTABLISHMENTARIANISM" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
+(def test-cases-1 
+  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" "AB" "BC" "CD" "DE" "EF" "FG" "GH" "HI" "IJ" "JK" "KL" "LM" "MN" "NO" "OP" "PQ" "QR" "QS" "ST" "SU" "UV" "VW" "WX" "XY" "AZ" "ZA" "SPY" "ZERO" "WORRY" "HUNGRY" "CHICKEN" "JOYSTICK" "VIGOROUS" "SUFFERING" "EXPRESSION" "COUNTRYSIDE" "INTRODUCTION" "COMMUNICATION" "QUALIFICATION" "ANTIDISESTABLISHMENTARIANISM" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
 )
+
+(def test-cases-2
+  ["SPY" "ZERO" "WORRY" "HUNGRY" "CHICKEN" "RESEARCH" "SUFFERING" "EXPRESSION" "COUNTRYSIDE" "INTRODUCTION" "COMMUNICATION" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
+)
+
+(def test-cases-3
+  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z" "SPY" "ZERO" "WORRY" "HUNGRY" "CHICKEN" "RESEARCH" "SUFFERING" "EXPRESSION" "COUNTRYSIDE" "INTRODUCTION" "COMMUNICATION" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"])
 
 (def test-cases-char
   ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
-  )
+)
 
 (defn string-classification-error-function
   "Finds the behaviors and errors of the individual."
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
         inputs test-cases-char
-        correct-outputs (vec (test-case-calc test-cases-char))
+        correct-outputs (vec (test-case-calc test-cases-3))
         outputs (map (fn [input]
                        (peek-stack
                         (interpret-program
