@@ -523,13 +523,17 @@
 
 (def test-cases 
   [  "SPY" "ZERO" "WORRY" "HUNGRY" "CHICKEN" "JOYSTICK" "VIGOROUS" "SUFFERING" "EXPRESSION" "COUNTRYSIDE" "INTRODUCTION" "COMMUNICATION" "QUALIFICATION" "ANTIDISESTABLISHMENTARIANISM" "SUPERCALIFRAGILISTICEXPIALIDOCIOUS"]
+)
+
+(def test-cases-char
+  ["A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U" "V" "W" "X" "Y" "Z"]
   )
 
 (defn string-classification-error-function
   "Finds the behaviors and errors of the individual."
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
-        inputs test-cases
+        inputs test-cases-char
         correct-outputs (vec (test-case-calc test-cases))
         outputs (map (fn [input]
                        (peek-stack
